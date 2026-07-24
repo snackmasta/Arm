@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Realtime GUI Controller for ESP8266 3-DOF Arm (MG90S Servos on GPIO 1, 3, 5).
+    Realtime GUI Controller for ESP8266 4-DOF Arm (MG90S Servos on GPIO 1, 3, 5, 4).
 .DESCRIPTION
     Provides interactive trackbar sliders to control each servo angle in real time via UDP.
 #>
@@ -14,15 +14,15 @@ $global:udpClient.EnableBroadcast = $true
 $global:port = 8888
 
 function Send-UDP {
-    param([int]$a1, [int]$a2, [int]$a3)
+    param([int]$a1, [int]$a2, [int]$a3, [int]$a4)
     
     $ip = $txtIP.Text.Trim()
     if ([string]::IsNullOrWhiteSpace($ip)) { $ip = "255.255.255.255" }
 
     try {
-        $payload = [System.Text.Encoding]::ASCII.GetBytes("$a1,$a2,$a3")
+        $payload = [System.Text.Encoding]::ASCII.GetBytes("$a1,$a2,$a3,$a4")
         $global:udpClient.Send($payload, $payload.Length, $ip, $global:port) | Out-Null
-        $lblStatus.Text = "Sent to $ip`:$global:port -> S1: $a1° | S2: $a2° | S3: $a3°"
+        $lblStatus.Text = "Sent -> IP: $ip`:$global:port | S1: $a1° | S2: $a2° | S3: $a3° | S4: $a4°"
         $lblStatus.ForeColor = [System.Drawing.Color]::LimeGreen
     }
     catch {
@@ -33,8 +33,8 @@ function Send-UDP {
 
 # --- Main Form Setup ---
 $form = New-Object System.Windows.Forms.Form
-$form.Text = "ESP8266 3-DOF Servo Arm Controller"
-$form.Size = New-Object System.Drawing.Size(520, 520)
+$form.Text = "ESP8266 4-DOF Servo Arm Controller"
+$form.Size = New-Object System.Drawing.Size(520, 600)
 $form.StartPosition = "CenterScreen"
 $form.BackColor = [System.Drawing.Color]::FromArgb(24, 24, 37)
 $form.ForeColor = [System.Drawing.Color]::FromArgb(205, 214, 244)
@@ -44,11 +44,11 @@ $form.Font = New-Object System.Drawing.Font("Segoe UI", 10)
 
 # Header Title
 $lblTitle = New-Object System.Windows.Forms.Label
-$lblTitle.Text = "Realtime Servo Control"
+$lblTitle.Text = "Realtime 4-DOF Servo Control"
 $lblTitle.Font = New-Object System.Drawing.Font("Segoe UI", 14, [System.Drawing.FontStyle]::Bold)
 $lblTitle.ForeColor = [System.Drawing.Color]::FromArgb(137, 180, 250)
 $lblTitle.Location = New-Object System.Drawing.Point(20, 15)
-$lblTitle.Size = New-Object System.Drawing.Size(300, 30)
+$lblTitle.Size = New-Object System.Drawing.Size(350, 30)
 $form.Controls.Add($lblTitle)
 
 # Target IP Input
@@ -102,29 +102,33 @@ function Create-SliderGroup {
 }
 
 $group1 = Create-SliderGroup -Name "Servo 1" -PinLabel "GPIO 1 / Base" -YPos 95
-$group2 = Create-SliderGroup -Name "Servo 2" -PinLabel "GPIO 3 / Shoulder" -YPos 175
-$group3 = Create-SliderGroup -Name "Servo 3" -PinLabel "GPIO 5 / Elbow" -YPos 255
+$group2 = Create-SliderGroup -Name "Servo 2" -PinLabel "GPIO 3 / Shoulder" -YPos 170
+$group3 = Create-SliderGroup -Name "Servo 3" -PinLabel "GPIO 5 / Elbow" -YPos 245
+$group4 = Create-SliderGroup -Name "Servo 4" -PinLabel "GPIO 4 / Wrist/Gripper" -YPos 320
 
 # Event handler for slider changes
 $updateAngles = {
     $a1 = $group1.Track.Value
     $a2 = $group2.Track.Value
     $a3 = $group3.Track.Value
+    $a4 = $group4.Track.Value
 
     $group1.Label.Text = "Servo 1 (GPIO 1 / Base): $a1°"
     $group2.Label.Text = "Servo 2 (GPIO 3 / Shoulder): $a2°"
     $group3.Label.Text = "Servo 3 (GPIO 5 / Elbow): $a3°"
+    $group4.Label.Text = "Servo 4 (GPIO 4 / Wrist/Gripper): $a4°"
 
-    Send-UDP -a1 $a1 -a2 $a2 -a3 $a3
+    Send-UDP -a1 $a1 -a2 $a2 -a3 $a3 -a4 $a4
 }
 
 $group1.Track.Add_Scroll($updateAngles)
 $group2.Track.Add_Scroll($updateAngles)
 $group3.Track.Add_Scroll($updateAngles)
+$group4.Track.Add_Scroll($updateAngles)
 
 # --- Preset Buttons ---
 $panelPresets = New-Object System.Windows.Forms.Panel
-$panelPresets.Location = New-Object System.Drawing.Point(20, 345)
+$panelPresets.Location = New-Object System.Drawing.Point(20, 410)
 $panelPresets.Size = New-Object System.Drawing.Size(460, 45)
 $form.Controls.Add($panelPresets)
 
@@ -144,17 +148,17 @@ function Create-Button {
 }
 
 Create-Button -Text "0° (Min)" -X 0 -Action {
-    $group1.Track.Value = 0; $group2.Track.Value = 0; $group3.Track.Value = 0
+    $group1.Track.Value = 0; $group2.Track.Value = 0; $group3.Track.Value = 0; $group4.Track.Value = 0
     &$updateAngles
 }
 
 Create-Button -Text "90° (Neutral)" -X 115 -Action {
-    $group1.Track.Value = 90; $group2.Track.Value = 90; $group3.Track.Value = 90
+    $group1.Track.Value = 90; $group2.Track.Value = 90; $group3.Track.Value = 90; $group4.Track.Value = 90
     &$updateAngles
 }
 
 Create-Button -Text "180° (Max)" -X 230 -Action {
-    $group1.Track.Value = 180; $group2.Track.Value = 180; $group3.Track.Value = 180
+    $group1.Track.Value = 180; $group2.Track.Value = 180; $group3.Track.Value = 180; $group4.Track.Value = 180
     &$updateAngles
 }
 
@@ -173,6 +177,7 @@ $timer.Add_Tick({
     $group1.Track.Value = $script:sweepAngle
     $group2.Track.Value = $script:sweepAngle
     $group3.Track.Value = $script:sweepAngle
+    $group4.Track.Value = $script:sweepAngle
     &$updateAngles
 })
 
@@ -192,10 +197,10 @@ Create-Button -Text "Sweep Test" -X 345 -Action {
 
 # --- Status Bar ---
 $lblStatus = New-Object System.Windows.Forms.Label
-$lblStatus.Text = "Ready. Drag sliders to control servos."
+$lblStatus.Text = "Ready. Drag sliders to control 4 servos."
 $lblStatus.Font = New-Object System.Drawing.Font("Segoe UI", 9.5)
 $lblStatus.ForeColor = [System.Drawing.Color]::FromArgb(166, 173, 200)
-$lblStatus.Location = New-Object System.Drawing.Point(20, 410)
+$lblStatus.Location = New-Object System.Drawing.Point(20, 480)
 $lblStatus.Size = New-Object System.Drawing.Size(460, 40)
 $form.Controls.Add($lblStatus)
 

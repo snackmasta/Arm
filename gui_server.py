@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Web GUI Server & UDP Forwarder for ESP8266 3-DOF Servo Arm
-Serves a responsive Web UI at http://localhost:8000 for controlling servos in real-time.
+Web GUI Server & UDP Forwarder for ESP8266 4-DOF Servo Arm
+Serves a responsive Web UI at http://localhost:8000 for controlling 4 servos in real-time.
 """
 
 import http.server
@@ -21,7 +21,7 @@ HTML_CONTENT = """<!DOCTYPE html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ESP8266 Servo Arm Controller</title>
+    <title>ESP8266 4-DOF Servo Arm Controller</title>
     <style>
         :root {
             --bg-color: #181825;
@@ -84,16 +84,16 @@ HTML_CONTENT = """<!DOCTYPE html>
 
         .slider-card {
             background: #313244;
-            padding: 16px;
+            padding: 14px 16px;
             border-radius: 12px;
-            margin-bottom: 18px;
+            margin-bottom: 14px;
         }
 
         .slider-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             font-weight: 600;
         }
 
@@ -147,7 +147,7 @@ HTML_CONTENT = """<!DOCTYPE html>
 </head>
 <body>
     <div class="container">
-        <h1>🤖 ESP8266 Arm Control</h1>
+        <h1>🤖 4-DOF Servo Arm Control</h1>
 
         <div class="ip-group">
             <label for="ip">Target IP:</label>
@@ -178,10 +178,18 @@ HTML_CONTENT = """<!DOCTYPE html>
             <input type="range" id="s3" min="0" max="180" value="90" oninput="sendAngles()">
         </div>
 
+        <div class="slider-card">
+            <div class="slider-header">
+                <span>Servo 4 (GPIO 4 / Wrist-Gripper)</span>
+                <span class="angle-val" id="val4">90°</span>
+            </div>
+            <input type="range" id="s4" min="0" max="180" value="90" oninput="sendAngles()">
+        </div>
+
         <div class="preset-buttons">
-            <button onclick="setPresets(0, 0, 0)">0° (Min)</button>
-            <button onclick="setPresets(90, 90, 90)">90° (Neutral)</button>
-            <button onclick="setPresets(180, 180, 180)">180° (Max)</button>
+            <button onclick="setPresets(0, 0, 0, 0)">0° (Min)</button>
+            <button onclick="setPresets(90, 90, 90, 90)">90° (Neutral)</button>
+            <button onclick="setPresets(180, 180, 180, 180)">180° (Max)</button>
         </div>
 
         <div class="status" id="status">Ready</div>
@@ -196,10 +204,11 @@ HTML_CONTENT = """<!DOCTYPE html>
             targetIP = document.getElementById('ip').value;
         }
 
-        function setPresets(a1, a2, a3) {
+        function setPresets(a1, a2, a3, a4) {
             document.getElementById('s1').value = a1;
             document.getElementById('s2').value = a2;
             document.getElementById('s3').value = a3;
+            document.getElementById('s4').value = a4;
             sendAngles();
         }
 
@@ -207,29 +216,31 @@ HTML_CONTENT = """<!DOCTYPE html>
             const a1 = document.getElementById('s1').value;
             const a2 = document.getElementById('s2').value;
             const a3 = document.getElementById('s3').value;
+            const a4 = document.getElementById('s4').value;
 
             document.getElementById('val1').innerText = a1 + '°';
             document.getElementById('val2').innerText = a2 + '°';
             document.getElementById('val3').innerText = a3 + '°';
+            document.getElementById('val4').innerText = a4 + '°';
 
             const now = Date.now();
             if (now - lastSendTime > 25) { // 40 Hz throttle for smooth realtime control
-                executeSend(a1, a2, a3);
+                executeSend(a1, a2, a3, a4);
                 lastSendTime = now;
             } else {
                 clearTimeout(pendingSend);
                 pendingSend = setTimeout(() => {
-                    executeSend(a1, a2, a3);
+                    executeSend(a1, a2, a3, a4);
                     lastSendTime = Date.now();
                 }, 25);
             }
         }
 
-        function executeSend(a1, a2, a3) {
-            fetch(`/send?ip=${targetIP}&a1=${a1}&a2=${a2}&a3=${a3}`)
+        function executeSend(a1, a2, a3, a4) {
+            fetch(`/send?ip=${targetIP}&a1=${a1}&a2=${a2}&a3=${a3}&a4=${a4}`)
                 .then(res => res.json())
                 .then(data => {
-                    document.getElementById('status').innerText = `Sent -> IP: ${data.ip}:${data.port} | Angles: ${data.a1}°, ${data.a2}°, ${data.a3}°`;
+                    document.getElementById('status').innerText = `Sent -> IP: ${data.ip}:${data.port} | Angles: ${data.a1}°, ${data.a2}°, ${data.a3}°, ${data.a4}°`;
                 })
                 .catch(err => {
                     document.getElementById('status').innerText = 'Transmission error';
@@ -257,15 +268,16 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
             a1 = int(params.get("a1", [90])[0])
             a2 = int(params.get("a2", [90])[0])
             a3 = int(params.get("a3", [90])[0])
+            a4 = int(params.get("a4", [90])[0])
 
             # Send UDP packet to microcontroller
-            msg = f"{a1},{a2},{a3}".encode("ascii")
+            msg = f"{a1},{a2},{a3},{a4}".encode("ascii")
             try:
                 udp_socket.sendto(msg, (ip, UDP_PORT))
             except Exception as e:
                 pass
 
-            response = {"status": "ok", "ip": ip, "port": UDP_PORT, "a1": a1, "a2": a2, "a3": a3}
+            response = {"status": "ok", "ip": ip, "port": UDP_PORT, "a1": a1, "a2": a2, "a3": a3, "a4": a4}
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
             self.end_headers()
