@@ -12,6 +12,7 @@ Add-Type -AssemblyName System.Drawing
 $global:udpClient = New-Object System.Net.Sockets.UdpClient
 $global:udpClient.EnableBroadcast = $true
 $global:port = 8888
+$deg = [char]176
 
 function Send-UDP {
     param([int]$a1, [int]$a2, [int]$a3, [int]$a4)
@@ -22,7 +23,7 @@ function Send-UDP {
     try {
         $payload = [System.Text.Encoding]::ASCII.GetBytes("$a1,$a2,$a3,$a4")
         $global:udpClient.Send($payload, $payload.Length, $ip, $global:port) | Out-Null
-        $lblStatus.Text = "Sent -> IP: $ip`:$global:port | S1: $a1° | S2: $a2° | S3: $a3° | S4: $a4°"
+        $lblStatus.Text = "Sent -> IP: $ip`:$global:port | S1: ${a1}${deg} | S2: ${a2}${deg} | S3: ${a3}${deg} | S4: ${a4}${deg}"
         $lblStatus.ForeColor = [System.Drawing.Color]::LimeGreen
     }
     catch {
@@ -34,7 +35,7 @@ function Send-UDP {
 # --- Main Form Setup ---
 $form = New-Object System.Windows.Forms.Form
 $form.Text = "ESP8266 4-DOF Servo Arm Controller"
-$form.Size = New-Object System.Drawing.Size(520, 600)
+$form.Size = New-Object System.Drawing.Size(530, 610)
 $form.StartPosition = "CenterScreen"
 $form.BackColor = [System.Drawing.Color]::FromArgb(24, 24, 37)
 $form.ForeColor = [System.Drawing.Color]::FromArgb(205, 214, 244)
@@ -83,10 +84,10 @@ function Create-SliderGroup {
     )
 
     $lbl = New-Object System.Windows.Forms.Label
-    $lbl.Text = "$Name ($PinLabel): 90°"
+    $lbl.Text = "$Name ($PinLabel): 90${deg}"
     $lbl.Font = New-Object System.Drawing.Font("Segoe UI", 10, [System.Drawing.FontStyle]::Bold)
     $lbl.Location = New-Object System.Drawing.Point(20, $YPos)
-    $lbl.Size = New-Object System.Drawing.Size(460, 25)
+    $lbl.Size = New-Object System.Drawing.Size(470, 25)
     $form.Controls.Add($lbl)
 
     $track = New-Object System.Windows.Forms.TrackBar
@@ -95,7 +96,7 @@ function Create-SliderGroup {
     $track.Value = 90
     $track.TickFrequency = 15
     $track.Location = New-Object System.Drawing.Point(15, ($YPos + 25))
-    $track.Size = New-Object System.Drawing.Size(470, 45)
+    $track.Size = New-Object System.Drawing.Size(480, 45)
     $form.Controls.Add($track)
 
     return @{ Label = $lbl; Track = $track }
@@ -113,10 +114,10 @@ $updateAngles = {
     $a3 = $group3.Track.Value
     $a4 = $group4.Track.Value
 
-    $group1.Label.Text = "Servo 1 (GPIO 1 / Base): $a1°"
-    $group2.Label.Text = "Servo 2 (GPIO 3 / Shoulder): $a2°"
-    $group3.Label.Text = "Servo 3 (GPIO 5 / Elbow): $a3°"
-    $group4.Label.Text = "Servo 4 (GPIO 4 / Wrist/Gripper): $a4°"
+    $group1.Label.Text = "Servo 1 (GPIO 1 / Base): ${a1}${deg}"
+    $group2.Label.Text = "Servo 2 (GPIO 3 / Shoulder): ${a2}${deg}"
+    $group3.Label.Text = "Servo 3 (GPIO 5 / Elbow): ${a3}${deg}"
+    $group4.Label.Text = "Servo 4 (GPIO 4 / Wrist/Gripper): ${a4}${deg}"
 
     Send-UDP -a1 $a1 -a2 $a2 -a3 $a3 -a4 $a4
 }
@@ -128,36 +129,37 @@ $group4.Track.Add_Scroll($updateAngles)
 
 # --- Preset Buttons ---
 $panelPresets = New-Object System.Windows.Forms.Panel
-$panelPresets.Location = New-Object System.Drawing.Point(20, 410)
-$panelPresets.Size = New-Object System.Drawing.Size(460, 45)
+$panelPresets.Location = New-Object System.Drawing.Point(20, 405)
+$panelPresets.Size = New-Object System.Drawing.Size(480, 45)
 $form.Controls.Add($panelPresets)
 
 function Create-Button {
-    param([string]$Text, [int]$X, [scriptblock]$Action)
+    param([string]$Text, [int]$X, [int]$Width = 108, [scriptblock]$Action)
     $btn = New-Object System.Windows.Forms.Button
     $btn.Text = $Text
     $btn.Location = New-Object System.Drawing.Point($X, 0)
-    $btn.Size = New-Object System.Drawing.Size(100, 35)
+    $btn.Size = New-Object System.Drawing.Size($Width, 36)
     $btn.FlatStyle = "Flat"
     $btn.FlatAppearance.BorderSize = 1
     $btn.FlatAppearance.BorderColor = [System.Drawing.Color]::FromArgb(137, 180, 250)
     $btn.BackColor = [System.Drawing.Color]::FromArgb(49, 50, 68)
     $btn.ForeColor = [System.Drawing.Color]::White
+    $btn.Font = New-Object System.Drawing.Font("Segoe UI", 9)
     $btn.Add_Click($Action)
     $panelPresets.Controls.Add($btn)
 }
 
-Create-Button -Text "0° (Min)" -X 0 -Action {
+Create-Button -Text "0${deg} (Min)" -X 0 -Width 108 -Action {
     $group1.Track.Value = 0; $group2.Track.Value = 0; $group3.Track.Value = 0; $group4.Track.Value = 0
     &$updateAngles
 }
 
-Create-Button -Text "90° (Neutral)" -X 115 -Action {
+Create-Button -Text "90${deg} (Neutral)" -X 118 -Width 118 -Action {
     $group1.Track.Value = 90; $group2.Track.Value = 90; $group3.Track.Value = 90; $group4.Track.Value = 90
     &$updateAngles
 }
 
-Create-Button -Text "180° (Max)" -X 230 -Action {
+Create-Button -Text "180${deg} (Max)" -X 246 -Width 108 -Action {
     $group1.Track.Value = 180; $group2.Track.Value = 180; $group3.Track.Value = 180; $group4.Track.Value = 180
     &$updateAngles
 }
@@ -181,7 +183,7 @@ $timer.Add_Tick({
     &$updateAngles
 })
 
-Create-Button -Text "Sweep Test" -X 345 -Action {
+Create-Button -Text "Sweep Test" -X 364 -Width 108 -Action {
     if ($script:isSweeping) {
         $timer.Stop()
         $script:isSweeping = $false
@@ -200,8 +202,8 @@ $lblStatus = New-Object System.Windows.Forms.Label
 $lblStatus.Text = "Ready. Drag sliders to control 4 servos."
 $lblStatus.Font = New-Object System.Drawing.Font("Segoe UI", 9.5)
 $lblStatus.ForeColor = [System.Drawing.Color]::FromArgb(166, 173, 200)
-$lblStatus.Location = New-Object System.Drawing.Point(20, 480)
-$lblStatus.Size = New-Object System.Drawing.Size(460, 40)
+$lblStatus.Location = New-Object System.Drawing.Point(20, 475)
+$lblStatus.Size = New-Object System.Drawing.Size(470, 40)
 $form.Controls.Add($lblStatus)
 
 # On Form Closing - Clean up socket

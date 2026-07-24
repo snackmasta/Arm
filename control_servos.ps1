@@ -10,6 +10,8 @@ param(
     [int]$Port = 8888
 )
 
+$deg = [char]176
+
 function Send-ServoAngles {
     param(
         [int]$Angle1,
@@ -31,7 +33,7 @@ function Send-ServoAngles {
         $udpClient.EnableBroadcast = $true
         $payload = [System.Text.Encoding]::ASCII.GetBytes("$Angle1,$Angle2,$Angle3,$Angle4")
         $udpClient.Send($payload, $payload.Length, $IP, $PortNum) | Out-Null
-        Write-Host "Sent UDP -> IP: $IP`:$PortNum | S1(GPIO1): $Angle1° | S2(GPIO3): $Angle2° | S3(GPIO5): $Angle3° | S4(GPIO4): $Angle4°" -ForegroundColor Green
+        Write-Host "Sent UDP -> IP: $IP`:$PortNum | S1(GPIO1): ${Angle1}${deg} | S2(GPIO3): ${Angle2}${deg} | S3(GPIO5): ${Angle3}${deg} | S4(GPIO4): ${Angle4}${deg}" -ForegroundColor Green
     }
     catch {
         Write-Host "Error sending UDP packet: $_" -ForegroundColor Red
@@ -57,10 +59,10 @@ function Start-InteractiveMenu {
         Write-Host ""
         Write-Host "Select an option:" -ForegroundColor Yellow
         Write-Host "1) Set custom angles (Servo 1, 2, 3, 4)"
-        Write-Host "2) Move all to 90° (Neutral)"
-        Write-Host "3) Move all to 0° (Minimum)"
-        Write-Host "4) Move all to 180° (Maximum)"
-        Write-Host "5) Continuous Sweep Loop (0° <-> 180°)"
+        Write-Host "2) Move all to 90${deg} (Neutral)"
+        Write-Host "3) Move all to 0${deg} (Minimum)"
+        Write-Host "4) Move all to 180${deg} (Maximum)"
+        Write-Host "5) Continuous Sweep Loop (0${deg} <-> 180${deg})"
         Write-Host "6) Change Target IP Address"
         Write-Host "Q) Quit"
         
