@@ -10,13 +10,17 @@ const char* ST_PASS = "tolakangin";
 // UDP Port
 const uint16_t UDP_PORT = 8888;
 
-// Servo pin definitions (GPIO 1, GPIO 3, GPIO 5, GPIO 4)
+// Servo pin definitions:
+// GPIO 1: Elbow Pitch (J3)
+// GPIO 3: Shoulder Pitch (J2)
+// GPIO 5: Base Yaw (J1)
+// GPIO 4: Wrist Pitch (J4)
 // Note: GPIO 1 (TX) and GPIO 3 (RX) share pins with default Serial, 
 // so Serial logging is omitted to prevent interference with servo signals.
-const int SERVO1_PIN = 1; // GPIO 1
-const int SERVO2_PIN = 3; // GPIO 3
-const int SERVO3_PIN = 5; // GPIO 5
-const int SERVO4_PIN = 4; // GPIO 4
+const int SERVO1_PIN = 1; // GPIO 1 (Elbow Pitch J3)
+const int SERVO2_PIN = 3; // GPIO 3 (Shoulder Pitch J2)
+const int SERVO3_PIN = 5; // GPIO 5 (Base Yaw J1)
+const int SERVO4_PIN = 4; // GPIO 4 (Wrist Pitch J4)
 
 Servo servo1;
 Servo servo2;

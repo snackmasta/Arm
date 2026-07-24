@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Realtime GUI Controller for ESP8266 4-DOF Arm (MG90S Servos on GPIO 1, 3, 5, 4).
+    Realtime GUI Controller for ESP8266 4-DOF Arm (MG90S Servos: GPIO 1 = Elbow Pitch J3, GPIO 3 = Shoulder Pitch J2, GPIO 5 = Base Yaw J1, GPIO 4 = Wrist Pitch J4).
 .DESCRIPTION
     Provides interactive trackbar sliders to control each servo angle in real time via UDP.
 #>
@@ -102,10 +102,10 @@ function Create-SliderGroup {
     return @{ Label = $lbl; Track = $track }
 }
 
-$group1 = Create-SliderGroup -Name "Servo 1" -PinLabel "GPIO 1 / Base" -YPos 95
-$group2 = Create-SliderGroup -Name "Servo 2" -PinLabel "GPIO 3 / Shoulder" -YPos 170
-$group3 = Create-SliderGroup -Name "Servo 3" -PinLabel "GPIO 5 / Elbow" -YPos 245
-$group4 = Create-SliderGroup -Name "Servo 4" -PinLabel "GPIO 4 / Wrist/Gripper" -YPos 320
+$group1 = Create-SliderGroup -Name "Servo 1" -PinLabel "GPIO 1 / Elbow Pitch (J3)" -YPos 95
+$group2 = Create-SliderGroup -Name "Servo 2" -PinLabel "GPIO 3 / Shoulder Pitch (J2)" -YPos 170
+$group3 = Create-SliderGroup -Name "Servo 3" -PinLabel "GPIO 5 / Base Yaw (J1)" -YPos 245
+$group4 = Create-SliderGroup -Name "Servo 4" -PinLabel "GPIO 4 / Wrist Pitch (J4)" -YPos 320
 
 # Event handler for slider changes
 $updateAngles = {
@@ -114,10 +114,10 @@ $updateAngles = {
     $a3 = $group3.Track.Value
     $a4 = $group4.Track.Value
 
-    $group1.Label.Text = "Servo 1 (GPIO 1 / Base): ${a1}${deg}"
-    $group2.Label.Text = "Servo 2 (GPIO 3 / Shoulder): ${a2}${deg}"
-    $group3.Label.Text = "Servo 3 (GPIO 5 / Elbow): ${a3}${deg}"
-    $group4.Label.Text = "Servo 4 (GPIO 4 / Wrist/Gripper): ${a4}${deg}"
+    $group1.Label.Text = "Servo 1 (GPIO 1 / Elbow Pitch J3): ${a1}${deg}"
+    $group2.Label.Text = "Servo 2 (GPIO 3 / Shoulder Pitch J2): ${a2}${deg}"
+    $group3.Label.Text = "Servo 3 (GPIO 5 / Base Yaw J1): ${a3}${deg}"
+    $group4.Label.Text = "Servo 4 (GPIO 4 / Wrist Pitch J4): ${a4}${deg}"
 
     Send-UDP -a1 $a1 -a2 $a2 -a3 $a3 -a4 $a4
 }

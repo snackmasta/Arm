@@ -156,7 +156,7 @@ HTML_CONTENT = """<!DOCTYPE html>
 
         <div class="slider-card">
             <div class="slider-header">
-                <span>Servo 1 (GPIO 1 / Base)</span>
+                <span>Servo 1 (GPIO 1 / Elbow Pitch - J3)</span>
                 <span class="angle-val" id="val1">90°</span>
             </div>
             <input type="range" id="s1" min="0" max="180" value="90" oninput="sendAngles()">
@@ -164,7 +164,7 @@ HTML_CONTENT = """<!DOCTYPE html>
 
         <div class="slider-card">
             <div class="slider-header">
-                <span>Servo 2 (GPIO 3 / Shoulder)</span>
+                <span>Servo 2 (GPIO 3 / Shoulder Pitch - J2)</span>
                 <span class="angle-val" id="val2">90°</span>
             </div>
             <input type="range" id="s2" min="0" max="180" value="90" oninput="sendAngles()">
@@ -172,7 +172,7 @@ HTML_CONTENT = """<!DOCTYPE html>
 
         <div class="slider-card">
             <div class="slider-header">
-                <span>Servo 3 (GPIO 5 / Elbow)</span>
+                <span>Servo 3 (GPIO 5 / Base Yaw - J1)</span>
                 <span class="angle-val" id="val3">90°</span>
             </div>
             <input type="range" id="s3" min="0" max="180" value="90" oninput="sendAngles()">
@@ -180,7 +180,7 @@ HTML_CONTENT = """<!DOCTYPE html>
 
         <div class="slider-card">
             <div class="slider-header">
-                <span>Servo 4 (GPIO 4 / Wrist-Gripper)</span>
+                <span>Servo 4 (GPIO 4 / Wrist Pitch - J4)</span>
                 <span class="angle-val" id="val4">90°</span>
             </div>
             <input type="range" id="s4" min="0" max="180" value="90" oninput="sendAngles()">
